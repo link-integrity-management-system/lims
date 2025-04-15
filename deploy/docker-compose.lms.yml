@@ -1,0 +1,100 @@
+services:
+    api:
+        depends_on:
+            es01:
+                condition: service_healthy
+        build:
+            context: ../components
+            dockerfile: ../components/api/Dockerfile
+        ports:
+            - 127.0.0.1:${LMS_API_PORT}:${LMS_API_PORT_INTERNAL}
+        volumes:
+            - certs:${ELASTIC_CERTS_DIR}
+        env_file:
+            - .env
+        healthcheck:
+            test: curl -s http://localhost:3000/healthcheck | grep -q "Hello World"
+            interval: 10s
+            timeout: 10s
+            retries: 120
+
+    db-setup:
+        depends_on:
+            es01:
+                condition: service_healthy
+        build:
+            context: ../components
+            dockerfile: ../components/db-setup/Dockerfile
+        volumes:
+            - certs:${ELASTIC_CERTS_DIR}
+        env_file:
+            - .env
+
+    nginx:
+        depends_on:
+            api:
+                condition: service_healthy
+        build:
+            context: ../components
+            dockerfile: ../components/nginx/Dockerfile
+        ports:
+            - 80:80
+            - 443:443
+        env_file:
+            - .env
+
+    verifier:
+        depends_on:
+            redis:
+                condition: service_healthy
+            es01:
+                condition: service_healthy
+        build:
+            context: ../components
+            dockerfile: ../components/verifier/Dockerfile
+        volumes:
+            - certs:${ELASTIC_CERTS_DIR}
+        env_file:
+            - .env
+        mem_limit: ${VERIFIER_MEM_LIMIT}
+        restart: unless-stopped
+
+    verify_monitoring:
+        depends_on:
+            redis:
+                condition: service_healthy
+        build:
+            context: ../components
+            dockerfile: ../components/verify-monitoring/Dockerfile
+        ports:
+            - 127.0.0.1:4567:4567
+        environment:
+            ELASTIC_NODES: ${ELASTIC_NODES}
+            REDIS_HOST: redis
+            REDIS_PORT: ${REDIS_PORT}
+            ARENA_HOST: 0.0.0.0
+            ARENA_PORT: ${ARENA_PORT}
+            QUEUE_CRAWL: crawl
+            QUEUE_VERIFY: verify
+        healthcheck:
+            test: curl -s http://localhost:4567 | grep -q "Arena"
+            interval: 10s
+            timeout: 10s
+            retries: 120
+
+    website:
+        build:
+            context: ../components
+            dockerfile: ../components/test-website/Dockerfile
+        ports:
+            - 127.0.0.1:${LMS_WEB_PORT}:5000
+        env_file:
+            - .env
+        environment:
+            DIR_SHARED: ./shared
+            DIR_SERVICE_WORKER: ./service-worker
+        healthcheck:
+            test: curl -s http://localhost:5000 | grep -q "Testing Service Workers"
+            interval: 10s
+            timeout: 10s
+            retries: 120

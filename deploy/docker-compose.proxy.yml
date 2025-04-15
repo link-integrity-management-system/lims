@@ -1,0 +1,37 @@
+services:
+    proxy:
+        build:
+            context: ../components
+            dockerfile: ../components/proxy-mitm/Dockerfile
+        ports:
+            - 127.0.0.1:8080:8080
+        volumes:
+            - mitmproxy:/root/.mitmproxy
+        env_file:
+            - .env
+
+    api:
+        build:
+            context: ../components
+            dockerfile: ../components/api/Dockerfile
+        ports:
+            - 127.0.0.1:${LMS_API_PORT}:3000
+        volumes:
+            - certs:${ELASTIC_CERTS_DIR}
+        env_file:
+            - .env
+        healthcheck:
+            test: curl -s http://localhost:3000/healthcheck | grep -q "Hello World"
+            interval: 10s
+            timeout: 10s
+            retries: 120
+
+volumes:
+    certs:
+        driver: local
+    data_es01:
+        driver: local
+    data_kibana:
+        driver: local
+    mitmproxy:
+        driver: local

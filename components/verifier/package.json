@@ -1,0 +1,28 @@
+{
+    "name": "lms-verifier",
+    "version": "1.0.0",
+    "main": "index.js",
+    "devDependencies": {},
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "postinstall": "cd headless-chrome-crawler && npm install"
+    },
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "@elastic/elasticsearch": "^8.4.0",
+        "axios": "^0.27.2",
+        "axios-retry": "^4.5.0",
+        "bottleneck": "^2.19.5",
+        "bee-queue": "^1.7.1",
+        "date-fns": "^4.1.0",
+        "diff": "^7.0.0",
+        "js-beautify": "^1.15.1",
+        "luxon": "^3.0.4",
+        "pm2": "^5.2.0",
+        "psl": "^1.9.0",
+        "puppeteer": "^23.4.1",
+        "whois": "^2.14.2"
+    }
+}

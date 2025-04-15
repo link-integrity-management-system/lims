@@ -1,0 +1,31 @@
+services:
+    proxy:
+        build:
+            context: ../components
+            dockerfile: ../components/proxy-mitm/Dockerfile
+        ports:
+            - 127.0.0.1:8080:8080
+        volumes:
+            - mitmproxy:/root/.mitmproxy
+        env_file:
+            - .env
+
+    rq_dashboard:
+        image: eoranged/rq-dashboard
+        depends_on:
+            redis:
+                condition: service_healthy
+        ports:
+            - 127.0.0.1:9181:9181
+        environment:
+            RQ_DASHBOARD_REDIS_URL: redis://redis:6379
+
+    crawler:
+        build:
+            context: ../components
+            dockerfile: ../components/crawler/Dockerfile
+        depends_on:
+            redis:
+                condition: service_healthy
+        env_file:
+            - .env

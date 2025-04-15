@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "proxy-mitm"
+version = "0.1.0"
+description = ""
+authors = ["blank <blank@example.com>"]
+readme = "README.md"
+packages = []
+
+[tool.poetry.dependencies]
+python = "^3.10.6"
+beautifulsoup4 = "^4.11.1"
+mitmproxy = "^9.0.1"
+esprima = "^4.0.1"
+tldextract = "^5.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,85 @@
+services:
+    # single
+    redis:
+        image: redis:7.0
+        ports:
+            - 127.0.0.1:${REDIS_PORT}:${REDIS_PORT}
+        healthcheck:
+            test: [ "CMD-SHELL", "redis-cli ping | grep -q 'PONG'" ]
+            interval: 10s
+            timeout: 10s
+            retries: 10
+            start_period: 10s
+
+    # lms
+    db-setup:
+        build:
+            context: ../components
+            dockerfile: ../components/db-setup/Dockerfile
+
+    api:
+        build:
+            context: ../components
+            dockerfile: ../components/api/Dockerfile
+
+    nginx:
+        build:
+            context: ../components
+            dockerfile: ../components/nginx/Dockerfile
+
+    website:
+        build:
+            context: ../components
+            dockerfile: ../components/test-website/Dockerfile
+
+    verifier:
+        depends_on:
+            redis:
+                condition: service_healthy
+            es01:
+                condition: service_healthy
+        build:
+            context: ../components
+            dockerfile: ../components/verifier/Dockerfile
+
+    verify_monitoring:
+        depends_on:
+            redis:
+                condition: service_healthy
+        build:
+            context: ../components
+            dockerfile: ../components/verify-monitoring/Dockerfile
+
+    # elk
+    elk_setup:
+        image: docker.elastic.co/elasticsearch/elasticsearch:${ELK_STACK_VER}
+
+    es01:
+        image: elasticsearch:${ELK_STACK_VER}
+
+    kibana:
+        image: kibana:${ELK_STACK_VER}
+
+    # eval
+    proxy:
+        build:
+            context: ../components
+            dockerfile: ../components/proxy-mitm/Dockerfile
+
+    rq_dashboard:
+        image: eoranged/rq-dashboard
+
+    crawler:
+        build:
+            context: ../components
+            dockerfile: ../components/crawler/Dockerfile
+
+volumes:
+    certs:
+        driver: local
+    data_es01:
+        driver: local
+    data_kibana:
+        driver: local
+    mitmproxy:
+        driver: local
